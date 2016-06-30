@@ -1,0 +1,31 @@
+New log file opened at Wed Jun 29 15:44:47 UTC 2016 by 5618@twrichards-emmishviz-3436915
+Sending msg to client activator-a5108d6b-64cf-48bf-aca7-feabb2039501: DetachedLogEvent(LogMessage(debug,sbt server socket logs are in: /home/ubuntu/workspace/emmishviz-play-app/.sbtserver/connections/master.log))
+Sending msg to client activator-a5108d6b-64cf-48bf-aca7-feabb2039501: DetachedLogEvent(LogMessage(debug,sbt general server logs are in: /home/ubuntu/workspace/emmishviz-play-app/.sbtserver/master.log))
+Sending msg to client activator-a5108d6b-64cf-48bf-aca7-feabb2039501: DetachedLogEvent(LogMessage(debug,sbt client logs are in: /home/ubuntu/workspace/emmishviz-play-app/.sbtserver/connections/activator-a5108d6b-64cf-48bf-aca7-feabb2039501.log))
+Reading next message from client.
+Got request: ListenToEvents()
+Reading next message from client.
+Got request: ListenToBuildChange()
+Reading next message from client.
+Got request: SendSyntheticBuildChanged()
+Reading next message from client.
+Sending msg to client activator-a5108d6b-64cf-48bf-aca7-feabb2039501: DetachedLogEvent(LogMessage(debug,> --initialize))
+Got request: KeyLookupRequest(discoveredMainClasses)
+Reading next message from client.
+Got request: KeyLookupRequest(mainClass)
+Reading next message from client.
+Sending msg to client activator-a5108d6b-64cf-48bf-aca7-feabb2039501: DetachedLogEvent(LogMessage(debug,> initialize))
+Sending msg to client activator-a5108d6b-64cf-48bf-aca7-feabb2039501: DetachedLogEvent(LogMessage(debug,> onFailure load-failed))
+Sending msg to client activator-a5108d6b-64cf-48bf-aca7-feabb2039501: DetachedLogEvent(LogMessage(debug,> boot))
+Sending msg to client activator-a5108d6b-64cf-48bf-aca7-feabb2039501: DetachedLogEvent(LogMessage(debug,> reload))
+Sending msg to client activator-a5108d6b-64cf-48bf-aca7-feabb2039501: (3,ReceivedResponse())
+Sending msg to client activator-a5108d6b-64cf-48bf-aca7-feabb2039501: DetachedLogEvent(LogMessage(debug,[Loading] Scanning directory /home/ubuntu/workspace/emmishviz-play-app/project))
+Got request: UnlistenToEvents()
+Reading next message from client.
+Got request: UnlistenToBuildChange()
+Reading next message from client.
+Client activator-a5108d6b-64cf-48bf-aca7-feabb2039501 EOF, shutting down.
+Stopping client.
+Dropping message (8,ReceivedResponse()) to dead client activator-a5108d6b-64cf-48bf-aca7-feabb2039501
+Dropping message (0,ReceivedResponse()) to dead client activator-a5108d6b-64cf-48bf-aca7-feabb2039501
+Client activator-a5108d6b-64cf-48bf-aca7-feabb2039501 thread exiting.
