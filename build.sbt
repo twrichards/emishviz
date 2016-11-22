@@ -6,8 +6,6 @@ lazy val scalaV = "2.11.7"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-resolvers += "localIvy" at "C:\\Users\\i191727\\.ivy2\\local"
-
 lazy val server = (project in file("server")).settings(
   scalaVersion := scalaV,
   scalaJSProjects := Seq(client),
