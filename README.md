@@ -1,4 +1,4 @@
-# emmishviz
-Visualisation of greenhouse gas emmisions
+# emishviz
+Visualisation of greenhouse gas emissions
 
-http://emmishviz-twrichards.rhcloud.com
+http://emishviz-twrichards.rhcloud.com
