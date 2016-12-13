@@ -1,16 +1,30 @@
-name := """play-scala"""
+lazy val scalaV = "2.11.7"
 
-version := "1.0-SNAPSHOT"
+ivyScala := ivyScala.value map {
+  _.copy(overrideScalaVersion = true)
+}
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val server = (project in file("server")).settings(
+  scalaVersion := scalaV,
+  scalaJSProjects := Seq(client),
+  pipelineStages in Assets := Seq(scalaJSPipeline),
+  //  pipelineStages := Seq(digest, gzip),
+  compile in Compile <<= (compile in Compile) dependsOn scalaJSPipeline
+).enablePlugins(PlayScala).dependsOn(crossJvm)
 
-scalaVersion := "2.11.7"
+lazy val client = (project in file("client")).settings(
+  scalaVersion := scalaV,
+  persistLauncher := true,
+  libraryDependencies ++= Seq(
+    "org.scala-js" %%% "scalajs-dom" % "0.9.1"
+  )
+).enablePlugins(ScalaJSPlugin, ScalaJSWeb).dependsOn(crossJS)
 
-libraryDependencies ++= Seq(
-  jdbc,
-  cache,
-  ws,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0-RC1" % Test
-)
+lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
+  settings(scalaVersion := scalaV)
 
-resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+lazy val crossJvm = shared.jvm
+lazy val crossJS = shared.js
+
+// loads the server project at sbt startup
+onLoad in Global := (Command.process("project server", _: State)) compose (onLoad in Global).value
