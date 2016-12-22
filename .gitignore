@@ -2,10 +2,10 @@ IDEAS.private
 logs
 target
 /.idea
-*.iml
 /.idea_modules
 /.classpath
 /.project
 /.settings
 /RUNNING_PID
 **/*.iml
+/TODO
