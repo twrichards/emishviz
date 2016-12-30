@@ -22,7 +22,12 @@ lazy val client = (project in file("client")).settings(
 ).enablePlugins(ScalaJSPlugin, ScalaJSWeb).dependsOn(crossJS)
 
 lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
-  settings(scalaVersion := scalaV)
+  settings(
+    scalaVersion := scalaV,
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "upickle" % "0.4.3"
+    )
+  )
 
 lazy val crossJvm = shared.jvm
 lazy val crossJS = shared.js
