@@ -6,6 +6,9 @@ ivyScala := ivyScala.value map {
 
 lazy val server = (project in file("server")).settings(
   scalaVersion := scalaV,
+  libraryDependencies ++= Seq(
+    "com.lihaoyi" %% "upickle" % "0.4.3"
+  ),
   scalaJSProjects := Seq(client),
   pipelineStages in Assets := Seq(scalaJSPipeline),
   //  pipelineStages := Seq(digest, gzip),
@@ -17,17 +20,13 @@ lazy val client = (project in file("client")).settings(
   persistLauncher := true,
   libraryDependencies ++= Seq(
     "org.scala-js" %%% "scalajs-dom" % "0.9.1",
-    "be.doeraene" %%% "scalajs-jquery" % "0.9.1"
+    "be.doeraene" %%% "scalajs-jquery" % "0.9.1",
+    "com.lihaoyi" %%% "upickle" % "0.4.3"
   )
 ).enablePlugins(ScalaJSPlugin, ScalaJSWeb).dependsOn(crossJS)
 
 lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
-  settings(
-    scalaVersion := scalaV,
-    libraryDependencies ++= Seq(
-      "com.lihaoyi" %% "upickle" % "0.4.3"
-    )
-  )
+  settings(scalaVersion := scalaV)
 
 lazy val crossJvm = shared.jvm
 lazy val crossJS = shared.js
