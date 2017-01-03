@@ -2,9 +2,11 @@ package models
 
 import java.io.File
 
+import shared._
+
 class GhgEmissions(csvFile: File) extends AbstractCaitCsvRepresentation(csvFile) {
 
-  override def extractSpecifics(cells: Array[String]): Map[String, Map[String, Double]] = {
+  override def extractSpecifics(cells: Array[String]): CaitYearCountryDetail = {
 
     val energy =
       safeDouble(cells, 11) // energy total
