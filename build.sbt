@@ -21,6 +21,7 @@ lazy val client = (project in file("client")).settings(
   libraryDependencies ++= Seq(
     "org.scala-js" %%% "scalajs-dom" % "0.9.1",
     "be.doeraene" %%% "scalajs-jquery" % "0.9.1",
+    "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
     "com.lihaoyi" %%% "upickle" % "0.4.3"
   )
 ).enablePlugins(ScalaJSPlugin, ScalaJSWeb).dependsOn(crossJS)
