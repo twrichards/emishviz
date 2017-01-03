@@ -54,7 +54,7 @@ object MainScalaJS extends js.JSApp {
     val horizontalBarDistance = barWidth + barSeparation
 
     //The value to multiply each bar's value by to get its height.
-    val barHeightMultiplier = graphHeight / maxData;
+    val barHeightMultiplier = graphHeight / maxData
 
     //Color for start
     val c = d3.rgb("DarkSlateBlue")
@@ -64,7 +64,7 @@ object MainScalaJS extends js.JSApp {
     val rectHeightFun = (d: Int) => d * barHeightMultiplier
     val rectColorFun = (d: Int, i: Int) => c.brighter(i * 0.5).toString
 
-    val svg = d3.select("playground").append("svg").attr("width", "100%").attr("height", "450px")
+    val svg = d3.select("#playground").append("svg").attr("width", "100%").attr("height", "450px")
     val sel = svg.selectAll("rect").data(js.Array(8, 22, 31, 36, 48, 17, 25))
     sel.enter()
       .append("rect")
