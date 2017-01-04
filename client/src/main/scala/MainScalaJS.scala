@@ -9,6 +9,7 @@ import shared._
 
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 import scala.scalajs.js
+import scala.util.{Failure, Success}
 
 object MainScalaJS extends js.JSApp {
 
@@ -16,10 +17,9 @@ object MainScalaJS extends js.JSApp {
 
     implicit val slider: Slider = d3.slider().axis(true).step(1)
 
-    Ajax.get("/emissions").onSuccess {
-
-      case xhr => init(xhr.responseText)
-
+    Ajax.get("/emissions").onComplete {
+      case Success(xhr) => init(xhr.responseText)
+      case Failure(e) => dom.window.alert("Failed to load emissions data : " + e.getMessage)
     }
 
   }
