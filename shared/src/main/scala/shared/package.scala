@@ -28,4 +28,9 @@ package object shared {
   val WASTE = "waste"
   val LAND_USE_CHANGE = "land_use_change"
 
+  val POPULATION = "population"
+  val GDP = "gdp"
+  val PPP = "ppp"
+  val USD = "usd"
+
 }
