@@ -18,18 +18,18 @@ class GhgEmissions(csvFile: File) extends AbstractCaitCsvRepresentation(csvFile)
     +safeDouble(cells, 16) // bunker fuels
 
     Map(
-      "gases" -> Map(
-        "co2" -> safeDouble(cells, 8),
-        "ch4" -> safeDouble(cells, 9),
-        "n2o" -> safeDouble(cells, 10)
+      GASES -> Map(
+        CO2 -> safeDouble(cells, 8),
+        CH4 -> safeDouble(cells, 9),
+        N2O -> safeDouble(cells, 10)
       ),
-      "source" -> Map(
-        "energy" -> energy,
-        "transport" -> transport,
-        "agriculture" -> safeDouble(cells, 13),
-        "industrial" -> safeDouble(cells, 12),
-        "waste" -> safeDouble(cells, 14),
-        "land_use_change" -> safeDouble(cells, 15)
+      SOURCE -> Map(
+        ENERGY -> energy,
+        TRANSPORT -> transport,
+        AGRICULTURE -> safeDouble(cells, 13),
+        INDUSTRIAL -> safeDouble(cells, 12),
+        WASTE -> safeDouble(cells, 14),
+        LAND_USE_CHANGE -> safeDouble(cells, 15)
       )
     )
 

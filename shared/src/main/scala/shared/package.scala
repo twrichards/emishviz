@@ -15,4 +15,17 @@ package object shared {
   def parseCait(unparsedJSON: String): CaitMap =
     default.readJs[CaitMap](json.read(unparsedJSON))
 
+  val GASES = "gases"
+  val CO2 = "co2"
+  val CH4 = "ch4"
+  val N2O = "n2o"
+
+  val SOURCE = "source"
+  val ENERGY = "energy"
+  val TRANSPORT = "transport"
+  val AGRICULTURE = "agriculture"
+  val INDUSTRIAL = "industrial"
+  val WASTE = "waste"
+  val LAND_USE_CHANGE = "land_use_change"
+
 }
