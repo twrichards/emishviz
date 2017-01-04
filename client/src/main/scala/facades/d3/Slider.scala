@@ -6,7 +6,6 @@ import org.singlespaced.d3js.svg.Axis
 import scala.scalajs.js
 
 @scala.scalajs.js.native
-@scala.scalajs.js.annotation.JSName("d3.slider")
 trait Slider extends scala.scalajs.js.Function with scala.scalajs.js.Function1[scala.scalajs.js.|[org.singlespaced.d3js.Selection[scala.scalajs.js.Any], org.singlespaced.d3js.Transition[scala.scalajs.js.Any]], scala.Unit] {
 
   def axis(enabled: Boolean): Slider = js.native
