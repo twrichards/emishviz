@@ -11,7 +11,7 @@ abstract class AbstractCaitCsvRepresentation(csvFile: File) {
 
   protected def extractSpecifics(cells: Array[String]): CaitYearCountryDetail
 
-  def asJson() = upickle.json.write(upickle.default.writeJs[CaitMap](toMap))
+  def asJson() = stringifyCait(toMap)
 
   def replaceQuotedCommas: (String) => String =
     _.replaceAll("""\"(.*?)\,(.*?)\"""", """$1\|$2""") // replace quoted strings containing comma with pipes with no quotes (non-greedy)

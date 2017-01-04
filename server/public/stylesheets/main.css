@@ -1,5 +1,14 @@
-#main{
+.main{
 
 	padding:20px;
+
+}
+
+#year-detail-json{
+
+	border: 1px;
+	height: 400px;
+	max-height: 400px;
+	overflow-y: scroll;
 
 }

@@ -5,8 +5,7 @@ import org.scalajs.dom.ext._
 import org.scalajs.dom.html
 import org.scalajs.dom.raw.Event
 import org.singlespaced.d3js.d3
-import shared.CaitMap
-import upickle._
+import shared._
 
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 import scala.scalajs.js
@@ -17,29 +16,38 @@ object MainScalaJS extends js.JSApp {
 
     implicit val slider: Slider = d3.slider().axis(true).step(1)
 
-    implicit val sliderLabel: html.Label = dom.document.getElementById("year-slider-label").asInstanceOf[html.Label]
-
-    slider.on("slide", yearChangeHandler)
-
     Ajax.get("/emissions").onSuccess {
 
-      case xhr => initSlider(xhr.responseText)
+      case xhr => init(xhr.responseText)
 
     }
 
   }
 
-  def yearChangeHandler(implicit sliderLabel: html.Label): (Event, Int) => Unit = (event: Event, value: Int) => {
-    sliderLabel.textContent = value.toString
+  def init(ajaxResponseText: String)(implicit slider: Slider): Unit = {
+
+    implicit val parsed: CaitMap = parseCait(ajaxResponseText)
+
+    paramateriseSlider
+
+    slider.on("slide", yearChangeHandler)
+
   }
 
-  def initSlider(ajaxResponseText: String)(implicit slider: Slider): Unit = {
+  def yearChangeHandler(implicit caitMap: CaitMap): (Event, Int) => Unit = (event: Event, value: Int) => {
 
-    val parsed: CaitMap = default.readJs[CaitMap](json.read(ajaxResponseText))
+    dom.document.getElementById("year-detail-json").asInstanceOf[html.Pre].textContent =
+      caitMap.get(value.toString) match {
+        case Some(yearDetail) => stringifyCaitYearDetail(yearDetail)
+        case None => "No data found for year"
+      }
+  }
 
-    slider.min(parsed.keySet.min.toInt)
+  def paramateriseSlider(implicit caitMap: CaitMap, slider: Slider): Unit = {
 
-    val max: Int = parsed.keySet.max.toInt
+    slider.min(caitMap.keySet.min.toInt)
+
+    val max: Int = caitMap.keySet.max.toInt
     slider.max(max)
     slider.value(max)
 
