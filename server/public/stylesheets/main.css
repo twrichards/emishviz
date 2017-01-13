@@ -1,14 +1,68 @@
 .main{
 
-	padding:20px;
+	padding:50px;
 
 }
 
-#year-detail-json{
+#yearDetailJson{
 
 	border: 1px;
 	height: 400px;
 	max-height: 400px;
 	overflow-y: scroll;
 
+}
+
+#dynamicArea div {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+.relative {
+	position: relative;
+}
+
+.left {
+	position: absolute;
+	left: 0;
+}
+
+.right {
+	position: absolute;
+	right: 0;
+}
+
+.bottom {
+	position: absolute;
+	bottom: 0;
+}
+
+.top {
+	position: absolute;
+	top: 0;
+}
+
+.max-width {
+	width: 100%
+}
+
+.max-height {
+	height: 100%
+}
+
+.w-sixty-five{
+	width:40%
+}
+
+.w-thirty-five{
+	width:35%
+}
+
+.h-sixty-five{
+	height:65%
+}
+
+.h-thirty-five{
+	height:35%
 }

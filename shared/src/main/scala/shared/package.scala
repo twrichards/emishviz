@@ -3,7 +3,7 @@ import upickle.{json, default}
 package object shared {
 
   type CaitMap = Map[String, CaitYearDetail]
-  private type CaitYearDetail = Map[String, CaitYearCountryDetail]
+  type CaitYearDetail = Map[String, CaitYearCountryDetail]
   type CaitYearCountryDetail = Map[String, Map[String, Double]]
 
   def stringifyCait(caitMap: CaitMap): String =
@@ -14,6 +14,9 @@ package object shared {
 
   def parseCait(unparsedJSON: String): CaitMap =
     default.readJs[CaitMap](json.read(unparsedJSON))
+
+  val NAME = "name"
+  val VALUE = "value"
 
   val GASES = "gases"
   val CO2 = "co2"
