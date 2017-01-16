@@ -18,12 +18,15 @@ object MainScalaJS extends js.JSApp {
     implicit val slider: Slider = d3.slider().axis(true).step(1)
 
     Ajax.get("/emissions").onComplete {
+
       case Success(xhr) => init(
         xhr.responseText,
-        initTreeMap("gasTreeMap"),
-        initTreeMap("sourcesTreeMap")
+        initTreeMap("#gasTreeMap"),
+        initTreeMap("#sourcesTreeMap")
       )
+
       case Failure(e) => dom.window.alert("Failed to load emissions data : " + e.getMessage)
+
     }
 
   }
@@ -33,18 +36,53 @@ object MainScalaJS extends js.JSApp {
 
     implicit val parsed: CaitMap = parseCait(ajaxResponseText)
 
-    val startingYear = paramateriseSlider
+    val startingYear = initSlider("#yearSlider", gasTreeMap, sourceTreeMap)
 
     yearChangeHandler(gasTreeMap, sourceTreeMap, startingYear)
-
-    slider.on("slide", yearChangeHandler(gasTreeMap, sourceTreeMap))
 
   }
 
 
-  def initTreeMap(domID: String): Viz = d3plus.viz()
+  def initSlider(domSelector: String, gasTreeMap: Viz, sourceTreeMap: Viz)(implicit caitMap: CaitMap, slider: Slider): Int = {
+
+    val startingYear = paramateriseSlider
+
+    slider.on("slide", yearChangeHandler(gasTreeMap, sourceTreeMap))
+
+    val drawSliderFunction = () => {
+      d3.select(domSelector).append("div").call(slider)
+    }
+
+    var sliderContainer = drawSliderFunction()
+
+    val sliderResizeFunction = (event: Event) => {
+      sliderContainer.remove()
+      sliderContainer = drawSliderFunction()
+    }
+
+    dom.window.addEventListener("resize", sliderResizeFunction, useCapture = true)
+
+    startingYear
+
+  }
+
+
+  def paramateriseSlider(implicit caitMap: CaitMap, slider: Slider): Int = {
+
+    slider.min(caitMap.keySet.min.toInt)
+
+    val max: Int = caitMap.keySet.max.toInt
+    slider.max(max)
+    slider.value(max)
+
+    max
+
+  }
+
+
+  def initTreeMap(domSelector: String): Viz = d3plus.viz()
     .`type`("tree_map")
-    .container("#" + domID)
+    .container(domSelector)
     .resize(true)
     .id(NAME)
     .size(VALUE)
@@ -84,20 +122,5 @@ object MainScalaJS extends js.JSApp {
 
   def sumFunction(section: String, key: String) = (runningTotal: Double, keyValue: (String, CaitYearCountryDetail)) =>
     runningTotal + keyValue._2(section)(key)
-
-
-  def paramateriseSlider(implicit caitMap: CaitMap, slider: Slider): Int = {
-
-    slider.min(caitMap.keySet.min.toInt)
-
-    val max: Int = caitMap.keySet.max.toInt
-    slider.max(max)
-    slider.value(max)
-
-    d3.select("#yearSlider").call(slider)
-
-    max //this is now the selected value
-
-  }
 
 }
