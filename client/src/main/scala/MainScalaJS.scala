@@ -13,41 +13,57 @@ import scala.util.{Failure, Success}
 
 object MainScalaJS extends js.JSApp {
 
+  var isoMapping: Map[String, String] = null
+
   def main(): Unit = {
 
     implicit val slider: Slider = d3.slider().axis(true).step(1)
+
+    Ajax.get("/assets/js/vendor/ISO-3166.json").onComplete {
+
+      case Success(xhr) =>
+        isoMapping = parseISO3166(xhr.responseText) map (entry => entry(NAME) -> entry(COUNTRY_CODE)) toMap
+
+      case Failure(e) =>
+        dom.window.alert("Failed to load emissions data : " + e.getMessage)
+
+    }
 
     Ajax.get("/emissions").onComplete {
 
       case Success(xhr) => init(
         xhr.responseText,
         initTreeMap("#gasTreeMap"),
-        initTreeMap("#sourcesTreeMap")
+        initTreeMap("#sourcesTreeMap"),
+        initGeoMap("#mapArea")
       )
 
-      case Failure(e) => dom.window.alert("Failed to load emissions data : " + e.getMessage)
+      case Failure(e) =>
+        dom.window.alert("Failed to load emissions data : " + e.getMessage)
 
     }
 
   }
 
 
-  def init(ajaxResponseText: String, gasTreeMap: Viz, sourceTreeMap: Viz)(implicit slider: Slider): Unit = {
+  def init(ajaxResponseText: String, gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz)
+          (implicit slider: Slider): Unit = {
 
     implicit val parsed: CaitMap = parseCait(ajaxResponseText)
 
-    val startingYear = initSlider("#yearSlider", gasTreeMap, sourceTreeMap)
+    val startingYear = initSlider("#yearSlider", gasTreeMap, sourceTreeMap, geoMap)
 
-    yearChangeHandler(gasTreeMap, sourceTreeMap, startingYear)
+    yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap: Viz, startingYear)
 
   }
 
 
-  def initSlider(domSelector: String, gasTreeMap: Viz, sourceTreeMap: Viz)(implicit caitMap: CaitMap, slider: Slider): Int = {
+  def initSlider(domSelector: String, gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz)
+                (implicit caitMap: CaitMap, slider: Slider): Int = {
 
     val startingYear = paramateriseSlider
 
-    slider.on("slide", yearChangeHandler(gasTreeMap, sourceTreeMap))
+    slider.on("slide", yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap))
 
     val drawSliderFunction = () => {
       d3.select(domSelector).append("div").call(slider)
@@ -88,17 +104,20 @@ object MainScalaJS extends js.JSApp {
     .size(VALUE)
 
 
-  def yearChangeHandler(gasTreeMap: Viz, sourceTreeMap: Viz)(implicit caitMap: CaitMap): (Event, Int) => Unit =
-    (event: Event, selectedYear: Int) => yearChangeHandler(gasTreeMap, sourceTreeMap, selectedYear)
+  def yearChangeHandler(gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz)
+                       (implicit caitMap: CaitMap): (Event, Int) => Unit =
+    (event: Event, selectedYear: Int) => yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap, selectedYear)
 
 
-  def yearChangeHandler(gasTreeMap: Viz, sourceTreeMap: Viz, selectedYear: Int)(implicit caitMap: CaitMap): Unit = {
+  def yearChangeHandler(gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz, selectedYear: Int)
+                       (implicit caitMap: CaitMap): Unit = {
 
     caitMap.get(selectedYear.toString) match {
 
       case Some(yearDetail) =>
         drawTreeMap(yearDetail, GASES, gasTreeMap, CO2, N2O, CH4)
         drawTreeMap(yearDetail, SOURCE, sourceTreeMap, ENERGY, TRANSPORT, AGRICULTURE, INDUSTRIAL, WASTE, LAND_USE_CHANGE)
+        drawGeoMap(yearDetail, geoMap)
 
       case None => //TODO clear data
 
@@ -110,17 +129,79 @@ object MainScalaJS extends js.JSApp {
   def drawTreeMap(implicit yearDetail: CaitYearDetail, section: String, treeMap: Viz, keys: String*): Unit = {
 
     treeMap.data(
-      keys.map((key: String) => keyToSum(section, key)).toJSArray
+      keys.map(
+        (key: String) => keyToSum(section, key)
+      ).toJSArray
+    ).draw()
+
+  }
+
+  def keyToSum(section: String, key: String)(implicit yearDetail: CaitYearDetail) =
+    js.Dictionary(
+      NAME -> key,
+      VALUE -> yearDetail.foldLeft(0.0)(specificSumFunction(section, key))
+    )
+
+
+  def specificSumFunction(section: String, key: String) = (runningTotal: Double, keyValue: (String, CaitYearCountryDetail)) =>
+    runningTotal + keyValue._2(section)(key)
+
+
+  def drawGeoMap(implicit yearDetail: CaitYearDetail, geoMap: Viz): Unit = {
+
+    geoMap.data(
+      yearDetail.map(countryToSum).toJSArray
     ).draw()
 
   }
 
 
-  def keyToSum(section: String, key: String)(implicit yearDetail: CaitYearDetail) =
-    js.Dictionary(NAME -> key, VALUE -> yearDetail.foldLeft(0.0)(sumFunction(section, key)))
+  def initGeoMap(domSelector: String): Viz = d3plus.viz()
+    .`type`("geo_map")
+    .container(domSelector)
+    .resize(true)
+    .coords(
+      js.Dictionary(
+        "mute" -> "010", // hides Antarctica
+        "value" -> "/assets/js/vendor/world-50m.v1.json"
+      )
+    )
+    .id(ID)
+    .text(NAME)
+    .color(VALUE)
+    .tooltip(VALUE)
 
 
-  def sumFunction(section: String, key: String) = (runningTotal: Double, keyValue: (String, CaitYearCountryDetail)) =>
-    runningTotal + keyValue._2(section)(key)
+  def countryToSum = (keyValue: (String, CaitYearCountryDetail)) =>
+    js.Dictionary(
+      NAME -> keyValue._1,
+      ID -> mapCountryToISO3166(keyValue._1), //TODO move mapping to CSV load (none AJAX)
+      VALUE -> keyValue._2(GASES).foldLeft(0.0)(countrySumFunction)
+    )
+
+
+  def countrySumFunction = (runningTotal: Double, keyValue: (String, Double)) =>
+    runningTotal + keyValue._2
+
+
+  def mapCountryToISO3166(country: String): String = isoMapping get country match {
+
+    case Some(matching) => matching
+
+    case None => isoMapping find (_._1.contains(country)) match {
+
+      case Some(partialMatch) => {
+        println(country + "=" + partialMatch._1)
+        partialMatch._2
+      }
+
+      case None => {
+        js.Dynamic.global.console.error(country)
+        null
+      }
+
+    }
+
+  }
 
 }

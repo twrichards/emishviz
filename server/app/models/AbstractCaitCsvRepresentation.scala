@@ -34,6 +34,8 @@ abstract class AbstractCaitCsvRepresentation(csvFile: File) {
       .groupBy(groupByYear) //year
       .mapValues(
       _.groupBy(groupByCountry) // country
+        .filterKeys(_ != "World")
+        .filterKeys(!_.startsWith("European Union"))
         .mapValues(_.map(extractSpecifics)) // extract detail
         .mapValues(_ (0)) // simple year arrays to first item
     )

@@ -6,6 +6,8 @@ package object shared {
   type CaitYearDetail = Map[String, CaitYearCountryDetail]
   type CaitYearCountryDetail = Map[String, Map[String, Double]]
 
+  type ISO3166 = Array[Map[String, String]]
+
   def stringifyCait(caitMap: CaitMap): String =
     upickle.json.write(upickle.default.writeJs[CaitMap](caitMap))
 
@@ -15,8 +17,15 @@ package object shared {
   def parseCait(unparsedJSON: String): CaitMap =
     default.readJs[CaitMap](json.read(unparsedJSON))
 
+  def parseISO3166(unparsedJSON: String): ISO3166 =
+    default.readJs[ISO3166](json.read(unparsedJSON))
+
   val NAME = "name"
   val VALUE = "value"
+
+  val ID = "id"
+
+  val COUNTRY_CODE = "country-code"
 
   val GASES = "gases"
   val CO2 = "co2"
