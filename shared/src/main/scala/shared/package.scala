@@ -29,7 +29,7 @@ package object shared {
   val AGRICULTURE = "agriculture"
   val INDUSTRIAL = "industrial"
   val WASTE = "waste"
-  val LAND_USE_CHANGE = "land_use_change"
+  val LAND_USE_CHANGE = "land use change"
 
   val POPULATION = "population"
   val GDP = "gdp"
