@@ -22,6 +22,8 @@ package object shared {
 
   val NAME = "name"
   val VALUE = "value"
+  val MUTE = "mute"
+  val RANGE = "range"
 
   val ID = "id"
 

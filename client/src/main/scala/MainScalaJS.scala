@@ -63,6 +63,7 @@ object MainScalaJS extends js.JSApp {
 
     val startingYear = paramateriseSlider
 
+    //TODO make this only fire on slide release (quick sliding locks up the display)
     slider.on("slide", yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap))
 
     val drawSliderFunction = () => {
@@ -162,13 +163,16 @@ object MainScalaJS extends js.JSApp {
     .resize(true)
     .coords(
       js.Dictionary(
-        "mute" -> "010", // hides Antarctica
-        "value" -> "/assets/js/vendor/world-50m.v1.json"
+        MUTE -> "010", // hides Antarctica
+        VALUE -> "/assets/js/vendor/world-50m.v1.json"
       )
     )
     .id(ID)
     .text(NAME)
-    .color(VALUE)
+    .color(js.Dictionary(
+      RANGE -> js.Array("#759143", "#FFEE8D", "#B22200"),
+      VALUE -> VALUE
+    ))
     .tooltip(VALUE)
 
 
