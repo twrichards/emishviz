@@ -13,21 +13,9 @@ import scala.util.{Failure, Success}
 
 object MainScalaJS extends js.JSApp {
 
-  var isoMapping: Map[String, String] = null
-
   def main(): Unit = {
 
     implicit val slider: Slider = d3.slider().axis(true).step(1)
-
-    Ajax.get("/assets/js/vendor/ISO-3166.json").onComplete {
-
-      case Success(xhr) =>
-        isoMapping = parseISO3166(xhr.responseText) map (entry => entry(NAME) -> entry(COUNTRY_CODE)) toMap
-
-      case Failure(e) =>
-        dom.window.alert("Failed to load emissions data : " + e.getMessage)
-
-    }
 
     Ajax.get("/emissions").onComplete {
 
@@ -163,49 +151,33 @@ object MainScalaJS extends js.JSApp {
     .resize(true)
     .coords(
       js.Dictionary(
-        MUTE -> "010", // hides Antarctica
-        VALUE -> "/assets/js/vendor/world-50m.v1.json"
+        MUTE -> "anata", // hides Antarctica
+        VALUE -> "/assets/js/vendor/countries.json"
       )
     )
     .id(ID)
     .text(NAME)
-    .color(js.Dictionary(
-      RANGE -> js.Array("#759143", "#FFEE8D", "#B22200"),
-      VALUE -> VALUE
-    ))
+    .color(
+      js.Dictionary(
+        HEATMAP -> js.Array("#FFEE8D", "#B22200"),
+        VALUE -> VALUE
+      )
+    )
     .tooltip(VALUE)
 
 
   def countryToSum = (keyValue: (String, CaitYearCountryDetail)) =>
     js.Dictionary(
       NAME -> keyValue._1,
-      ID -> mapCountryToISO3166(keyValue._1), //TODO move mapping to CSV load (none AJAX)
-      VALUE -> keyValue._2(GASES).foldLeft(0.0)(countrySumFunction)
+      ID -> CaitCountryToAlpha5(keyValue._1),
+      VALUE -> quashNegatives(keyValue._2(GASES).foldLeft(0.0)(countrySumFunction))
     )
+
+
+  def quashNegatives(potentiallyNegative: Double): Double = if (potentiallyNegative > 0.0) potentiallyNegative else 0.0
 
 
   def countrySumFunction = (runningTotal: Double, keyValue: (String, Double)) =>
     runningTotal + keyValue._2
-
-
-  def mapCountryToISO3166(country: String): String = isoMapping get country match {
-
-    case Some(matching) => matching
-
-    case None => isoMapping find (_._1.contains(country)) match {
-
-      case Some(partialMatch) => {
-        println(country + "=" + partialMatch._1)
-        partialMatch._2
-      }
-
-      case None => {
-        js.Dynamic.global.console.error(country)
-        null
-      }
-
-    }
-
-  }
 
 }
