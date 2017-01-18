@@ -51,8 +51,7 @@ object MainScalaJS extends js.JSApp {
 
     val startingYear = paramateriseSlider
 
-    //TODO make this only fire on slide release (quick sliding locks up the display)
-    slider.on("slide", yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap))
+    slider.on("slideend", yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap))
 
     val drawSliderFunction = () => {
       d3.select(domSelector).append("div").call(slider)
