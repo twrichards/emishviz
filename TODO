@@ -3,4 +3,9 @@ Add CAIT credit/reference (as per licence)
 Add reference for https://github.com/topojson/world-atlas
 add reference for D3 slider
 add reference for D3plus
-add reference to country code mapping https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes
+
+add line chart for overall emissions lined up with the slider
+'weight' by population
+improve tooltips
+
+refactor MainScalaJS.scala to abstract the visualisations
