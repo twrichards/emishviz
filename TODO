@@ -5,8 +5,7 @@ add reference for D3 slider
 add reference for D3plus
 
 add line chart for overall emissions lined up with the slider
-'weight' by population
-improve tooltips
+improve tooltips (inc. 'grams per person' addition when weighted)
 selecting country filters treemaps
 
-refactor MainScalaJS.scala to abstract the visualisations
+refactor/breakdown MainScalaJS.scala to abstract the visualisations

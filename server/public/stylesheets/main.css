@@ -55,3 +55,12 @@
 .w-thirty-five div {
 	height: calc(100% - 25px);
 }
+
+.inner-pad {
+    margin-right: 20px;
+}
+
+.switch {
+	vertical-align: middle;
+}
+

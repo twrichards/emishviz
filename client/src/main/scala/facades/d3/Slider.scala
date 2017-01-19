@@ -12,6 +12,7 @@ trait Slider extends scala.scalajs.js.Function with scala.scalajs.js.Function1[s
 
   def axis(axis: Axis): Slider = js.native
 
+  def value(): Int = js.native
   def value(value: Int): Slider = js.native
 
   def min(value: Int): Slider = js.native

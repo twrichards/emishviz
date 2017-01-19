@@ -2,6 +2,7 @@ import facades.d3.ImplicitAddons._
 import facades.d3.{Slider, Viz, d3plus}
 import org.scalajs.dom
 import org.scalajs.dom.ext._
+import org.scalajs.dom.html.Input
 import org.scalajs.dom.raw.Event
 import org.singlespaced.d3js.d3
 import shared._
@@ -13,9 +14,23 @@ import scala.util.{Failure, Success}
 
 object MainScalaJS extends js.JSApp {
 
+  var socioEconomic: CaitMap = null
+
   def main(): Unit = {
 
     implicit val slider: Slider = d3.slider().axis(true).step(1)
+    implicit val weightByPopulationSwitch: Input =
+      dom.document.getElementById("weightByPopulation").asInstanceOf[Input]
+
+    Ajax.get("/socio").onComplete {
+
+      case Success(xhr) =>
+        socioEconomic = parseCait(xhr.responseText)
+
+      case Failure(e) =>
+        dom.window.alert("Failed to load socio economic data : " + e.getMessage)
+
+    }
 
     Ajax.get("/emissions").onComplete {
 
@@ -35,21 +50,27 @@ object MainScalaJS extends js.JSApp {
 
 
   def init(ajaxResponseText: String, gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz)
-          (implicit slider: Slider): Unit = {
+          (implicit slider: Slider, weightByPopulationSwitch: Input): Unit = {
 
-    implicit val parsed: CaitMap = parseCait(ajaxResponseText)
+    implicit val caitMap: CaitMap = parseCait(ajaxResponseText)
 
-    val startingYear = initSlider("#yearSlider", gasTreeMap, sourceTreeMap, geoMap)
+    initSlider("#yearSlider", gasTreeMap, sourceTreeMap, geoMap)
 
-    yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap: Viz, startingYear)
+    yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap: Viz, selectedYear)
+
+    val weightByPopulationChangeFunction = (event: Event) => {
+      drawGeoMap(caitMap(selectedYear.toString), geoMap)(weightByPopulationSwitch, selectedYear)
+    }
+
+    dom.window.addEventListener("change", weightByPopulationChangeFunction, useCapture = true)
 
   }
 
 
   def initSlider(domSelector: String, gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz)
-                (implicit caitMap: CaitMap, slider: Slider): Int = {
+                (implicit caitMap: CaitMap, slider: Slider, weightByPopulationSwitch: Input) = {
 
-    val startingYear = paramateriseSlider
+    paramateriseSlider
 
     slider.on("slideend", yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap))
 
@@ -66,12 +87,10 @@ object MainScalaJS extends js.JSApp {
 
     dom.window.addEventListener("resize", sliderResizeFunction, useCapture = true)
 
-    startingYear
-
   }
 
 
-  def paramateriseSlider(implicit caitMap: CaitMap, slider: Slider): Int = {
+  def paramateriseSlider(implicit caitMap: CaitMap, slider: Slider) = {
 
     slider.min(caitMap.keySet.min.toInt)
 
@@ -79,9 +98,9 @@ object MainScalaJS extends js.JSApp {
     slider.max(max)
     slider.value(max)
 
-    max
-
   }
+
+  def selectedYear(implicit slider: Slider): Int = slider.value()
 
 
   def initTreeMap(domSelector: String): Viz = d3plus.viz()
@@ -93,19 +112,19 @@ object MainScalaJS extends js.JSApp {
 
 
   def yearChangeHandler(gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz)
-                       (implicit caitMap: CaitMap): (Event, Int) => Unit =
+                       (implicit caitMap: CaitMap, weightByPopulationSwitch: Input): (Event, Int) => Unit =
     (event: Event, selectedYear: Int) => yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap, selectedYear)
 
 
   def yearChangeHandler(gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz, selectedYear: Int)
-                       (implicit caitMap: CaitMap): Unit = {
+                       (implicit caitMap: CaitMap, weightByPopulationSwitch: Input): Unit = {
 
     caitMap.get(selectedYear.toString) match {
 
       case Some(yearDetail) =>
         drawTreeMap(yearDetail, GASES, gasTreeMap, CO2, N2O, CH4)
         drawTreeMap(yearDetail, SOURCE, sourceTreeMap, ENERGY, TRANSPORT, AGRICULTURE, INDUSTRIAL, WASTE, LAND_USE_CHANGE)
-        drawGeoMap(yearDetail, geoMap)
+        drawGeoMap(yearDetail, geoMap)(weightByPopulationSwitch, selectedYear)
 
       case None => //TODO clear data
 
@@ -135,13 +154,20 @@ object MainScalaJS extends js.JSApp {
     runningTotal + keyValue._2(section)(key)
 
 
-  def drawGeoMap(implicit yearDetail: CaitYearDetail, geoMap: Viz): Unit = {
+  def drawGeoMap(yearDetail: CaitYearDetail, geoMap: Viz)(implicit weightByPopulationSwitch: Input, selectedYear: Int): Unit = {
+
+    implicit val weightByPopulation: Boolean = weightByPopulationSwitch.checked
 
     geoMap.data(
-      yearDetail.map(countryToSum).toJSArray
+      yearDetail.filterKeys(filterCountriesMissingPopulationIfApplicable).map(countryToSum).toJSArray
     ).draw()
 
   }
+
+
+  def filterCountriesMissingPopulationIfApplicable(implicit weightByPopulation: Boolean, selectedYear: Int) =
+    (caitCountry: String) =>
+      !weightByPopulation || socioEconomic(selectedYear.toString)(caitCountry)(POPULATION)(POPULATION) > 0
 
 
   def initGeoMap(domSelector: String): Viz = d3plus.viz()
@@ -165,12 +191,24 @@ object MainScalaJS extends js.JSApp {
     .tooltip(VALUE)
 
 
-  def countryToSum = (keyValue: (String, CaitYearCountryDetail)) =>
+  def countryToSum(implicit weightByPopulation: Boolean, selectedYear: Int) = (keyValue: (String, CaitYearCountryDetail)) => {
+
+    val caitCountry = keyValue._1
+
+    val caitYearCountryDetail = keyValue._2
+
     js.Dictionary(
-      NAME -> keyValue._1,
-      ID -> CaitCountryToAlpha5(keyValue._1),
-      VALUE -> quashNegatives(keyValue._2(GASES).foldLeft(0.0)(countrySumFunction))
+      NAME -> caitCountry,
+      ID -> CaitCountryToAlpha5(caitCountry),
+      VALUE -> weightByPopulationIfApplicable(
+        caitCountry,
+        quashNegatives(
+          caitYearCountryDetail(GASES).foldLeft(0.0)(countrySumFunction)
+        )
+      )
     )
+
+  }
 
 
   def quashNegatives(potentiallyNegative: Double): Double = if (potentiallyNegative > 0.0) potentiallyNegative else 0.0
@@ -178,5 +216,16 @@ object MainScalaJS extends js.JSApp {
 
   def countrySumFunction = (runningTotal: Double, keyValue: (String, Double)) =>
     runningTotal + keyValue._2
+
+
+  def weightByPopulationIfApplicable(caitCountry: String, rawCountryTotal: Double)
+                                    (implicit weightByPopulation: Boolean, selectedYear: Int): Double = {
+
+    if (weightByPopulation) // 1,000,000 is to convert metric tons to grams
+      1000000 * rawCountryTotal / socioEconomic(selectedYear.toString)(caitCountry)(POPULATION)(POPULATION)
+    else
+      rawCountryTotal
+
+  }
 
 }
