@@ -6,5 +6,5 @@ Visualisation of greenhouse gas emissions
 ### Mockup
 ![Mockup](mockup.png)
 
-### 'So Far' Screenshot (18th Jan 2017)
+### 'So Far' Screenshot (19th Jan 2017)
 ![So Far](screenshot.PNG)

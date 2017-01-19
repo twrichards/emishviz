@@ -137,13 +137,14 @@ object MainScalaJS extends js.JSApp {
 
     treeMap.data(
       keys.map(
-        (key: String) => keyToSum(section, key)
+        (key: String) => keyToSummedTreeMapEntry(section, key)
       ).toJSArray
     ).draw()
 
   }
 
-  def keyToSum(section: String, key: String)(implicit yearDetail: CaitYearDetail) =
+
+  def keyToSummedTreeMapEntry(section: String, key: String)(implicit yearDetail: CaitYearDetail) =
     js.Dictionary(
       NAME -> key,
       VALUE -> yearDetail.foldLeft(0.0)(specificSumFunction(section, key))
@@ -154,15 +155,24 @@ object MainScalaJS extends js.JSApp {
     runningTotal + keyValue._2(section)(key)
 
 
+
   def drawGeoMap(yearDetail: CaitYearDetail, geoMap: Viz)(implicit weightByPopulationSwitch: Input, selectedYear: Int): Unit = {
 
     implicit val weightByPopulation: Boolean = weightByPopulationSwitch.checked
 
     geoMap.data(
-      yearDetail.filterKeys(filterCountriesMissingPopulationIfApplicable).map(countryToSum).toJSArray
+      yearDetail
+        .filterKeys(filterCountriesMissingPopulationIfApplicable)
+        .mapValues(countryToSum)
+        .filter(filterCountriesMissingData)
+        .map(countrySumToGeoMapEntry)
+        .toJSArray
     ).draw()
 
   }
+
+
+  def filterCountriesMissingData = (countrySumPair: (String, Double)) => countrySumPair._2 != 0
 
 
   def filterCountriesMissingPopulationIfApplicable(implicit weightByPopulation: Boolean, selectedYear: Int) =
@@ -190,21 +200,20 @@ object MainScalaJS extends js.JSApp {
     )
     .tooltip(VALUE)
 
+  def countryToSum = (caitYearCountryDetail: CaitYearCountryDetail) =>
+    caitYearCountryDetail(GASES).foldLeft(0.0)(countrySumFunction)
 
-  def countryToSum(implicit weightByPopulation: Boolean, selectedYear: Int) = (keyValue: (String, CaitYearCountryDetail)) => {
+
+  def countrySumToGeoMapEntry(implicit weightByPopulation: Boolean, selectedYear: Int) = (keyValue: (String, Double)) => {
 
     val caitCountry = keyValue._1
-
-    val caitYearCountryDetail = keyValue._2
 
     js.Dictionary(
       NAME -> caitCountry,
       ID -> CaitCountryToAlpha5(caitCountry),
       VALUE -> weightByPopulationIfApplicable(
         caitCountry,
-        quashNegatives(
-          caitYearCountryDetail(GASES).foldLeft(0.0)(countrySumFunction)
-        )
+        quashNegatives(keyValue._2)
       )
     )
 
