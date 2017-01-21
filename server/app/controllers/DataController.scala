@@ -1,8 +1,9 @@
 package controllers
 
+import java.io.InputStream
 import javax.inject.Inject
 
-import models.{SocioEconomic, GhgEmissions}
+import models.{GhgEmissions, SocioEconomic}
 import play.Environment
 import play.api.mvc._
 
@@ -10,17 +11,17 @@ class DataController @Inject()(env: Environment) extends Controller {
 
   def emissions = Action {
 
-    val file = env.getFile("conf/data/cait/csv/CAIT Country GHG Emissions.csv")
+    val stream: InputStream = env.resourceAsStream("data/cait/csv/CAIT Country GHG Emissions.csv")
 
-    Ok(new GhgEmissions(file).asJson())
+    Ok(new GhgEmissions(stream).asJson())
 
   }
 
   def socio = Action {
 
-    val file = env.getFile("conf/data/cait/csv/CAIT Country Socio-Economic Data.csv")
+    val stream: InputStream = env.resourceAsStream("data/cait/csv/CAIT Country Socio-Economic Data.csv")
 
-    Ok(new SocioEconomic(file).asJson())
+    Ok(new SocioEconomic(stream).asJson())
 
   }
 

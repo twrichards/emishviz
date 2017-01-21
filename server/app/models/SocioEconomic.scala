@@ -1,10 +1,10 @@
 package models
 
-import java.io.File
+import java.io.InputStream
 
 import shared._
 
-class SocioEconomic(csvFile: File) extends AbstractCaitCsvRepresentation(csvFile) {
+class SocioEconomic(csvStream: InputStream) extends AbstractCaitCsvRepresentation(csvStream) {
 
   override def extractSpecifics(cells: Array[String]): CaitYearCountryDetail = {
 
@@ -19,6 +19,5 @@ class SocioEconomic(csvFile: File) extends AbstractCaitCsvRepresentation(csvFile
     )
 
   }
-
 
 }

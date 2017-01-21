@@ -1,10 +1,10 @@
 package models
 
-import java.io.File
+import java.io.InputStream
 
 import shared._
 
-class GhgEmissions(csvFile: File) extends AbstractCaitCsvRepresentation(csvFile) {
+class GhgEmissions(csvStream: InputStream) extends AbstractCaitCsvRepresentation(csvStream) {
 
   override def extractSpecifics(cells: Array[String]): CaitYearCountryDetail = {
 
@@ -34,6 +34,5 @@ class GhgEmissions(csvFile: File) extends AbstractCaitCsvRepresentation(csvFile)
     )
 
   }
-
 
 }

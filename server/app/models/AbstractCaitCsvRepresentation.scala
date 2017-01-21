@@ -1,13 +1,13 @@
 package models
 
-import java.io.File
+import java.io.InputStream
 
 import shared._
 
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
-abstract class AbstractCaitCsvRepresentation(csvFile: File) {
+abstract class AbstractCaitCsvRepresentation(csvStream: InputStream) {
 
   protected def extractSpecifics(cells: Array[String]): CaitYearCountryDetail
 
@@ -22,7 +22,7 @@ abstract class AbstractCaitCsvRepresentation(csvFile: File) {
 
   protected def toMap: CaitMap = {
 
-    val bufferedReader = Source.fromFile(csvFile)
+    val bufferedReader = Source.fromInputStream(csvStream)
 
     val result = bufferedReader
       .getLines
