@@ -1,0 +1,1 @@
+web: sbt run -Dhttp.port=$PORT
