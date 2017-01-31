@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/emishviz -Dhttp.port=$PORT
+web: target/universal/stage/bin/server -Dhttp.port=$PORT
