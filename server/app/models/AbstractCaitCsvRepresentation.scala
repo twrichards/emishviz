@@ -22,7 +22,7 @@ abstract class AbstractCaitCsvRepresentation(csvStream: InputStream) {
 
   protected def toMap: CaitMap = {
 
-    val bufferedReader = Source.fromInputStream(csvStream)
+    val bufferedReader = Source.fromInputStream(csvStream, "windows-1252")
 
     val result = bufferedReader
       .getLines
