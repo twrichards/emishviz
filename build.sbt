@@ -1,5 +1,8 @@
 lazy val scalaV = "2.11.7"
 
+name := "emishviz"
+version := "1.0-SNAPSHOT"
+
 val sharedDependencies = Def.setting(Seq(
   "com.lihaoyi" %%% "upickle" % "0.4.3"
 ))
