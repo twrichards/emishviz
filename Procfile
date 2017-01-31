@@ -1,1 +1,1 @@
-web: sbt run -Dhttp.port=${PORT}
+web: dist start -Dhttp.port=$PORT

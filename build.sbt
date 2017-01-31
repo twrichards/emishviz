@@ -18,7 +18,7 @@ lazy val server = (project in file("server")).settings(
   pipelineStages in Assets := Seq(scalaJSPipeline),
   //  pipelineStages := Seq(digest, gzip),
   compile in Compile <<= (compile in Compile) dependsOn scalaJSPipeline
-).enablePlugins(PlayScala).dependsOn(crossJvm)
+).enablePlugins(PlayScala, LauncherJarPlugin).dependsOn(crossJvm)
 
 lazy val client = (project in file("client")).settings(
   scalaVersion := scalaV,
