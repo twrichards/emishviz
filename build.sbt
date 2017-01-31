@@ -1,8 +1,5 @@
 lazy val scalaV = "2.11.7"
 
-name := "emishviz"
-version := "1.0-SNAPSHOT"
-
 val sharedDependencies = Def.setting(Seq(
   "com.lihaoyi" %%% "upickle" % "0.4.3"
 ))
@@ -11,7 +8,7 @@ val clientDependencies = Def.setting(sharedDependencies.value ++ Seq(
   "org.singlespaced" %%% "scalajs-d3" % "0.3.2"
 ))
 val serverDependencies = Def.setting(sharedDependencies.value ++ Seq(
-
+  "com.vmunier" %% "scalajs-scripts" % "1.0.0"
 ))
 
 lazy val server = (project in file("server")).settings(
