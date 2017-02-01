@@ -4,7 +4,8 @@ html {
 
 .main{
 
-	padding:50px;
+	padding-left:50px;
+	padding-right:50px;
 
 }
 
@@ -61,10 +62,13 @@ html {
 }
 
 .inner-pad {
+    margin: 10px;
+}
+
+.inner-pad-right {
     margin-right: 20px;
 }
 
 .switch {
 	vertical-align: middle;
 }
-
