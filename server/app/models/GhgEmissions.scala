@@ -1,10 +1,11 @@
 package models
 
-import java.io.InputStream
+import javax.inject.Inject
 
+import play.Environment
 import shared._
 
-class GhgEmissions(csvStream: InputStream) extends AbstractCaitCsvRepresentation(csvStream) {
+class GhgEmissions @Inject()(env: Environment) extends AbstractCaitCsvRepresentation(env, PATH_EMISSIONS_CSV) {
 
   override def extractSpecifics(cells: Array[String]): CaitYearCountryDetail = {
 

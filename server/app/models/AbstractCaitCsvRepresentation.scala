@@ -1,30 +1,17 @@
 package models
 
-import java.io.InputStream
-
+import play.Environment
 import shared._
 
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
-abstract class AbstractCaitCsvRepresentation(csvStream: InputStream) {
+abstract class AbstractCaitCsvRepresentation(env: Environment, csvPath: String) {
 
-  protected def extractSpecifics(cells: Array[String]): CaitYearCountryDetail
+  private val bufferedReader = Source.fromInputStream(env.resourceAsStream(csvPath), "windows-1252")
 
-  def asJson() = stringifyCait(toMap)
-
-  def replaceQuotedCommas: (String) => String =
-    _.replaceAll("""\"(.*?)\,(.*?)\"""", """$1\|$2""") // replace quoted strings containing comma with pipes with no quotes (non-greedy)
-
-  def groupByYear: (Array[String]) => String = _ (1) //2nd column
-
-  def groupByCountry: (Array[String]) => String = _ (0).replaceAll("""\|""", ",") //1st column (with commas restored)
-
-  protected def toMap: CaitMap = {
-
-    val bufferedReader = Source.fromInputStream(csvStream, "windows-1252")
-
-    val result = bufferedReader
+  private val caitMap =
+    bufferedReader
       .getLines
       .toArray
       .map(_.trim)
@@ -42,9 +29,16 @@ abstract class AbstractCaitCsvRepresentation(csvStream: InputStream) {
 
     bufferedReader.close()
 
-    result
+  val json = stringifyCait(caitMap)
 
-  }
+  protected def extractSpecifics(cells: Array[String]): CaitYearCountryDetail
+
+  def replaceQuotedCommas: (String) => String =
+    _.replaceAll("""\"(.*?)\,(.*?)\"""", """$1\|$2""") // replace quoted strings containing comma with pipes with no quotes (non-greedy)
+
+  def groupByYear: (Array[String]) => String = _ (1) //2nd column
+
+  def groupByCountry: (Array[String]) => String = _ (0).replaceAll("""\|""", ",") //1st column (with commas restored)
 
   protected def safeDouble(cells: Array[String], index: Int, default: Double): Double = {
     Try {

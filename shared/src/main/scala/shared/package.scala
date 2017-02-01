@@ -20,6 +20,9 @@ package object shared {
   def parseISO3166(unparsedJSON: String): ISO3166 =
     default.readJs[ISO3166](json.read(unparsedJSON))
 
+  val PATH_EMISSIONS_CSV = "data/cait/csv/CAIT Country GHG Emissions.csv"
+  val PATH_SOCIO_CSV = "data/cait/csv/CAIT Country Socio-Economic Data.csv"
+
   val NAME = "name"
   val VALUE = "value"
   val MUTE = "mute"
