@@ -2,7 +2,7 @@ import facades.d3.ImplicitAddons._
 import facades.d3.{Slider, Viz, d3plus}
 import org.scalajs.dom
 import org.scalajs.dom.ext._
-import org.scalajs.dom.html.Input
+import org.scalajs.dom.html.{Input, Span}
 import org.scalajs.dom.raw.Event
 import org.singlespaced.d3js.d3
 import shared._
@@ -15,6 +15,10 @@ import scala.util.{Failure, Success}
 object MainScalaJS extends js.JSApp {
 
   var socioEconomic: CaitMap = null
+
+  var selectedCountryName:String = null;
+
+  type DrawerFunction = (CaitYearDetail) => Unit
 
   def main(): Unit = {
 
@@ -36,8 +40,8 @@ object MainScalaJS extends js.JSApp {
 
       case Success(xhr) => init(
         xhr.responseText,
-        initTreeMap("#gasTreeMap"),
-        initTreeMap("#sourcesTreeMap"),
+        initTreeMap("#gasTreeMap", "d3plus"),
+        initTreeMap("#sourcesTreeMap", "category10"),
         initGeoMap("#mapArea")
       )
 
@@ -56,13 +60,31 @@ object MainScalaJS extends js.JSApp {
 
     initSlider("#yearSlider", gasTreeMap, sourceTreeMap, geoMap)
 
-    yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap: Viz, selectedYear)
+    reDraw(
+      selectedYear,
+      reDrawGasTreeMap(gasTreeMap),
+      reDrawSourceTreeMap(sourceTreeMap),
+      reDrawGeoMap(geoMap, selectedYear)
+    )
 
     val weightByPopulationChangeFunction = (event: Event) => {
-      drawGeoMap(caitMap(selectedYear.toString), geoMap)(weightByPopulationSwitch, selectedYear)
+      reDraw(
+        selectedYear,
+        reDrawGeoMap(geoMap, selectedYear)
+      )
     }
 
     dom.window.addEventListener("change", weightByPopulationChangeFunction, useCapture = true)
+
+    geoMap.focus(
+      false,
+      countrySelectionChange(
+        gasTreeMap,
+        dom.document.getElementById("gasFilterLabel").asInstanceOf[Span],
+        sourceTreeMap,
+        dom.document.getElementById("sourcesFilterLabel").asInstanceOf[Span]
+      )
+    )
 
   }
 
@@ -72,7 +94,14 @@ object MainScalaJS extends js.JSApp {
 
     paramateriseSlider
 
-    slider.on("slideend", yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap))
+    slider.on(
+      "slideend",
+      reDraw(
+        reDrawGasTreeMap(gasTreeMap),
+        reDrawSourceTreeMap(sourceTreeMap),
+        reDrawGeoMap(geoMap, selectedYear)
+      )
+    )
 
     val drawSliderFunction = () => {
       d3.select(domSelector).append("div").call(slider)
@@ -103,71 +132,84 @@ object MainScalaJS extends js.JSApp {
   def selectedYear(implicit slider: Slider): Int = slider.value()
 
 
-  def initTreeMap(domSelector: String): Viz = d3plus.viz()
+  def initTreeMap(domSelector: String, d3ColorScale:Any): Viz = d3plus.viz()
     .`type`("tree_map")
     .container(domSelector)
     .resize(true)
     .id(NAME)
+    .color(
+      js.Dictionary(
+        SCALE -> d3ColorScale
+      )
+    )
     .size(VALUE)
 
 
-  def yearChangeHandler(gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz)
-                       (implicit caitMap: CaitMap, weightByPopulationSwitch: Input): (Event, Int) => Unit =
-    (event: Event, selectedYear: Int) => yearChangeHandler(gasTreeMap, sourceTreeMap, geoMap, selectedYear)
+  def reDraw(toDraw:DrawerFunction*)(implicit caitMap: CaitMap): (Event, Int) => Unit =
+    (event: Event, selectedYear: Int) => reDraw(selectedYear, toDraw: _*)
 
 
-  def yearChangeHandler(gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz, selectedYear: Int)
-                       (implicit caitMap: CaitMap, weightByPopulationSwitch: Input): Unit = {
-
+  def reDraw(selectedYear: Int, toDraw:DrawerFunction*)(implicit caitMap: CaitMap) =
     caitMap.get(selectedYear.toString) match {
-
-      case Some(yearDetail) =>
-        drawTreeMap(yearDetail, GASES, gasTreeMap, CO2, N2O, CH4)
-        drawTreeMap(yearDetail, SOURCE, sourceTreeMap, ENERGY, TRANSPORT, AGRICULTURE, INDUSTRIAL, WASTE, LAND_USE_CHANGE)
-        drawGeoMap(yearDetail, geoMap)(weightByPopulationSwitch, selectedYear)
-
+      case Some(yearDetail) => toDraw.foreach((drawer:DrawerFunction) => drawer(yearDetail))
       case None => //TODO clear data
-
     }
 
+
+  def reDrawGasTreeMap(gasTreeMap: Viz):DrawerFunction = (yearDetail: CaitYearDetail) => {
+    drawTreeMap(yearDetail, GASES, gasTreeMap, CO2, N2O, CH4)
   }
 
+  def reDrawSourceTreeMap(sourceTreeMap: Viz):DrawerFunction = (yearDetail: CaitYearDetail) => {
+    drawTreeMap(yearDetail, SOURCE, sourceTreeMap, ENERGY, TRANSPORT, AGRICULTURE, INDUSTRIAL, WASTE, LAND_USE_CHANGE)
+  }
 
-  def drawTreeMap(implicit yearDetail: CaitYearDetail, section: String, treeMap: Viz, keys: String*): Unit = {
+  def drawTreeMap(yearDetail: CaitYearDetail, section: String, treeMap: Viz, keys: String*): Unit = {
 
     treeMap.data(
       keys.map(
-        (key: String) => keyToSummedTreeMapEntry(section, key)
+        (key: String) => keyToTreeMapEntry(yearDetail, section, key)
       ).toJSArray
     ).draw()
 
   }
 
 
-  def keyToSummedTreeMapEntry(section: String, key: String)(implicit yearDetail: CaitYearDetail) =
+  def keyToTreeMapEntry(yearDetail: CaitYearDetail, section: String, key: String) =
     js.Dictionary(
       NAME -> key,
-      VALUE -> yearDetail.foldLeft(0.0)(specificSumFunction(section, key))
+      VALUE -> sumYearDetailIfApplicable(yearDetail, section, key)
     )
+
+
+  def sumYearDetailIfApplicable(yearDetail: CaitYearDetail, section: String, key: String): Double =
+    if (selectedCountryName == null) yearDetail.foldLeft(0.0)(specificSumFunction(section, key))
+    else if (selectedCountryName == NO_DATA) 0.0
+    else yearDetail(selectedCountryName)(section)(key)
 
 
   def specificSumFunction(section: String, key: String) = (runningTotal: Double, keyValue: (String, CaitYearCountryDetail)) =>
     runningTotal + keyValue._2(section)(key)
 
 
+  def reDrawGeoMap(geoMap: Viz, selectedYear: Int)(implicit weightByPopulationSwitch: Input):DrawerFunction =
+    (yearDetail: CaitYearDetail) => drawGeoMap(yearDetail, geoMap)(weightByPopulationSwitch, selectedYear)
+
 
   def drawGeoMap(yearDetail: CaitYearDetail, geoMap: Viz)(implicit weightByPopulationSwitch: Input, selectedYear: Int): Unit = {
 
     implicit val weightByPopulation: Boolean = weightByPopulationSwitch.checked
 
-    geoMap.data(
-      yearDetail
-        .filterKeys(filterCountriesMissingPopulationIfApplicable)
-        .mapValues(countryToSum)
-        .filter(filterCountriesMissingData)
-        .map(countrySumToGeoMapEntry)
-        .toJSArray
-    ).draw()
+    geoMap
+      .data(
+        yearDetail
+          .filterKeys(filterCountriesMissingPopulationIfApplicable)
+          .mapValues(countryToSum)
+          .filter(filterCountriesMissingData)
+          .map(countrySumToGeoMapEntry)
+          .toJSArray
+      )
+      .draw()
 
   }
 
@@ -199,6 +241,37 @@ object MainScalaJS extends js.JSApp {
       )
     )
     .tooltip(VALUE)
+
+
+  def countrySelectionChange(gasTreeMap:Viz, gasFilterLabel: Span, sourceTreeMap:Viz, sourcesFilterLabel: Span)
+                            (implicit slider: Slider, caitMap: CaitMap) =
+    (nodeIDs:js.Array[String], viz:Viz) => {
+
+      if(nodeIDs==null || nodeIDs.isEmpty) {
+        selectedCountryName = null
+      }
+      else {
+        selectedCountryName = Alpha5ToCaitCountry.getOrElse(nodeIDs(0), NO_DATA)
+      }
+
+      if(selectedCountryName==null || selectedCountryName == NO_DATA)
+        updateFilterLabels("", gasFilterLabel, sourcesFilterLabel)
+      else
+        updateFilterLabels("for " + selectedCountryName, gasFilterLabel, sourcesFilterLabel)
+
+      reDraw(
+        selectedYear,
+        reDrawGasTreeMap(gasTreeMap),
+        reDrawSourceTreeMap(sourceTreeMap)
+      )
+
+    }
+
+  def updateFilterLabels(newValue:String, gasFilterLabel: Span, sourcesFilterLabel: Span): Unit ={
+    gasFilterLabel.textContent = newValue
+    sourcesFilterLabel.textContent = newValue
+  }
+
 
   def countryToSum = (caitYearCountryDetail: CaitYearCountryDetail) =>
     caitYearCountryDetail(GASES).foldLeft(0.0)(countrySumFunction)

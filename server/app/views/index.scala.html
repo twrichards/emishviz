@@ -1,39 +1,62 @@
 @main("emishviz") {
 
-<div class="github-card" data-user="twrichards" data-repo="emishviz" data-width="600"></div>
-<script src="//cdn.jsdelivr.net/github-cards/latest/widget.js"></script>
+    <a href="https://emishviz.herokuapp.com">
+        <img src='@routes.Assets.versioned("images/logo.png")'>
+    </a>
 
-<div class="main">
+    <div class="top right inner-pad github">
 
-    <div id="dynamicArea" class="relative max-width h-sixty-five">
-
-        <div class="w-sixty-five max-height left">
-            <div id="mapArea"></div>
-            <div class="top right inner-pad-right">
-                Weight by Population
-                <label class="switch">
-                    <input id="weightByPopulation" type="checkbox">
-                    <div class="switch-inner round"></div>
-                </label>
-            </div>
+        <a href="https://github.com/twrichards/emishviz" target="_blank">
+            <img src='@routes.Assets.versioned("images/GitHub-Mark-32px.png")'>
+        </a>
+        <div>
+            <strong class="name">
+                <a href="https://github.com/twrichards/emishviz" target="_blank">emishviz</a><sup class="language">Scala</sup>
+            </strong>
+            <br/>
+            <span>
+                Created by <a href="https://github.com/twrichards" target="_blank">twrichards</a>
+            </span>
         </div>
-
-        <div class="w-thirty-five h-thirty-five top right">
-            <b>Gas Breakdown</b>
-            <div id="gasTreemap"></div>
-        </div>
-
-        <div class="w-thirty-five h-sixty-five bottom right">
-            <b>Source Breakdown</b>
-            <div id="sourcesTreemap"></div>
-        </div>
-
+        <a class="avatar" href="https://github.com/twrichards" target="_blank">
+            <img src="https://avatars.githubusercontent.com/u/19289579?v=3&amp;s=32">
+        </a>
     </div>
 
-    <div id="yearSlider"></div>
+    <div class="main">
 
-    <script src="/assets/js/playground.js" type="text/javascript"></script>
+        <div id="dynamicArea" class="relative max-width h-sixty-five">
 
-</div>
+            <div class="w-sixty-five max-height left">
+                <div id="mapArea"></div>
+                <div class="top right inner-pad-right">
+                    Weight Map by Population
+                    <label class="switch">
+                        <input id="weightByPopulation" type="checkbox">
+                        <div class="switch-inner round"></div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="w-thirty-five h-thirty-five top right">
+                <b>Gas Breakdown</b>
+                <span id="gasFilterLabel" class="filter-label"></span>
+                <div id="gasTreemap"></div>
+
+            </div>
+
+            <div class="w-thirty-five h-sixty-five bottom right">
+                <b>Source Breakdown</b>
+                <span id="sourcesFilterLabel" class="filter-label"></span>
+                <div id="sourcesTreemap"></div>
+            </div>
+
+        </div>
+
+        <div id="yearSlider"></div>
+
+        <script src="/assets/js/playground.js" type="text/javascript"></script>
+
+    </div>
 
 }

@@ -28,6 +28,7 @@ package object shared {
   val MUTE = "mute"
   val PADDING = "padding"
   val HEATMAP = "heatmap"
+  val SCALE = "scale"
   val ID = "id"
   val COUNTRY_CODE = "country-code"
 
@@ -48,6 +49,10 @@ package object shared {
   val GDP = "gdp"
   val PPP = "ppp"
   val USD = "usd"
+
+
+  val NO_DATA = "NO_DATA"
+
 
   //TODO move to own object
   val CaitCountryToAlpha5 = Map(
@@ -237,5 +242,6 @@ package object shared {
     "Zambia" -> "afzmb",
     "Zimbabwe" -> "afzwe"
   )
+  val Alpha5ToCaitCountry = CaitCountryToAlpha5.map(_.swap)
 
 }

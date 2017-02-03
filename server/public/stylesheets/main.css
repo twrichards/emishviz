@@ -2,6 +2,10 @@ html {
 	font-family: 'Helvetica', sans-serif;
 }
 
+body {
+    margin:0px;
+}
+
 .main{
 
 	padding-left:50px;
@@ -71,4 +75,38 @@ html {
 
 .switch {
 	vertical-align: middle;
+}
+
+.github {
+    font-size: 11px;
+    font-family: "Helvetica Nenu",Hevetica,Arial,sans-serif;
+    color: #555;
+}
+
+.github a {
+    text-decoration: none;
+}
+
+.github * {
+    display: inline-block;
+}
+
+.github .name {
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.github .language {
+    font-size: 10px;
+    margin-left: 3px;
+    color: #797979;
+}
+
+.github .avatar img {
+    border-radius: 4px;
+}
+
+.filter-label {
+    font-style: italic;
+    background-color: #ffb7b7;
 }
