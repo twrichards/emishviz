@@ -23,11 +23,11 @@ trait Viz extends js.Object {
 
   def color(config: js.Dictionary[Any]): Viz = js.native
 
-  def tooltip(tooltipKey: String): Viz = js.native
-
   def mouse(config: js.Dictionary[Any]): Viz = js.native
 
   def focus(config: Any, callback: js.Function2[js.Array[String], Viz, Unit]): Viz = js.native
+
+  def format(config: js.Dictionary[js.Function2[Any, js.Dictionary[Any], Any]]): Viz = js.native
 
   def draw(): Unit = js.native
 

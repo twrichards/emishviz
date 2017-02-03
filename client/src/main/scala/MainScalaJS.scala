@@ -23,8 +23,9 @@ object MainScalaJS extends js.JSApp {
   def main(): Unit = {
 
     implicit val slider: Slider = d3.slider().axis(true).step(1)
-    implicit val weightByPopulationSwitch: Input =
-      dom.document.getElementById("weightByPopulation").asInstanceOf[Input]
+
+    val weightByPopulationSwitch: Input = dom.document.getElementById("weightByPopulation").asInstanceOf[Input]
+    implicit val isWeightByPopulation:()=> Boolean = () => weightByPopulationSwitch.checked
 
     Ajax.get("/socio").onComplete {
 
@@ -54,7 +55,7 @@ object MainScalaJS extends js.JSApp {
 
 
   def init(ajaxResponseText: String, gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz)
-          (implicit slider: Slider, weightByPopulationSwitch: Input): Unit = {
+          (implicit slider: Slider, isWeightByPopulation:()=> Boolean): Unit = {
 
     implicit val caitMap: CaitMap = parseCait(ajaxResponseText)
 
@@ -66,12 +67,16 @@ object MainScalaJS extends js.JSApp {
       reDrawSourceTreeMap(sourceTreeMap),
       reDrawGeoMap(geoMap, selectedYear)
     )
+    
+    val mapLegendUnits:Span = dom.document.getElementById("mapLegendUnits").asInstanceOf[Span]
+    mapLegendUnits.textContent = getUnits(isWeightByPopulation)
 
     val weightByPopulationChangeFunction = (event: Event) => {
       reDraw(
         selectedYear,
         reDrawGeoMap(geoMap, selectedYear)
       )
+      mapLegendUnits.textContent = getUnits(isWeightByPopulation)
     }
 
     dom.window.addEventListener("change", weightByPopulationChangeFunction, useCapture = true)
@@ -90,7 +95,7 @@ object MainScalaJS extends js.JSApp {
 
 
   def initSlider(domSelector: String, gasTreeMap: Viz, sourceTreeMap: Viz, geoMap: Viz)
-                (implicit caitMap: CaitMap, slider: Slider, weightByPopulationSwitch: Input) = {
+                (implicit caitMap: CaitMap, slider: Slider, isWeightByPopulation:()=>Boolean) = {
 
     paramateriseSlider
 
@@ -132,14 +137,14 @@ object MainScalaJS extends js.JSApp {
   def selectedYear(implicit slider: Slider): Int = slider.value()
 
 
-  def initTreeMap(domSelector: String, d3ColorScale:Any): Viz = d3plus.viz()
+  def initTreeMap(domSelector: String, colorScaleName:Any): Viz = formattedViz(()=>false)
     .`type`("tree_map")
     .container(domSelector)
     .resize(true)
     .id(NAME)
     .color(
       js.Dictionary(
-        SCALE -> d3ColorScale
+        SCALE -> colorScaleName
       )
     )
     .size(VALUE)
@@ -192,13 +197,13 @@ object MainScalaJS extends js.JSApp {
     runningTotal + keyValue._2(section)(key)
 
 
-  def reDrawGeoMap(geoMap: Viz, selectedYear: Int)(implicit weightByPopulationSwitch: Input):DrawerFunction =
-    (yearDetail: CaitYearDetail) => drawGeoMap(yearDetail, geoMap)(weightByPopulationSwitch, selectedYear)
+  def reDrawGeoMap(geoMap: Viz, selectedYear: Int)(implicit isWeightByPopulation:()=> Boolean):DrawerFunction =
+    (yearDetail: CaitYearDetail) => drawGeoMap(yearDetail, geoMap)(isWeightByPopulation, selectedYear)
 
 
-  def drawGeoMap(yearDetail: CaitYearDetail, geoMap: Viz)(implicit weightByPopulationSwitch: Input, selectedYear: Int): Unit = {
+  def drawGeoMap(yearDetail: CaitYearDetail, geoMap: Viz)(implicit isWeightByPopulation:()=> Boolean, selectedYear: Int): Unit = {
 
-    implicit val weightByPopulation: Boolean = weightByPopulationSwitch.checked
+    implicit val weightedByPopulation = isWeightByPopulation()
 
     geoMap
       .data(
@@ -213,34 +218,62 @@ object MainScalaJS extends js.JSApp {
 
   }
 
+  def formattedViz(isWeightedByPopulation:()=>Boolean): Viz = d3plus.viz()
+    .format(
+      js.Dictionary(
+        TEXT -> formatValueLabelsIfApplicable,
+        NUMBER -> formatNumbersIfApplicable(isWeightedByPopulation)
+      )
+    )
+
+  def formatValueLabelsIfApplicable = (text:Any, params:js.Dictionary[Any]) => {
+    if(VALUE.equals(text)) "Emissions"
+    else text.toString.split(" ").map(_.capitalize).mkString(" ") //better title caseing than d3plus
+  }
+
+
+  def formatNumbersIfApplicable(isWeightedByPopulation:()=>Boolean) = (number:Any, params:js.Dictionary[Any]) => {
+    val oneDecimalPlace = d3.format(",")(d3.round(number.asInstanceOf[Double], 0))
+    if(VALUE.equals(params(KEY)) && params.contains("data")) oneDecimalPlace + "&nbsp;" + getUnits(isWeightedByPopulation)
+    else if (SHARE.equals(params(KEY))) oneDecimalPlace + "%"
+    else oneDecimalPlace
+  }
+
+
+  def getUnits(isWeightedByPopulation:()=>Boolean) =
+    if (isWeightedByPopulation())
+      "kilograms CO₂ equivalent per person"
+    else
+      "million metric tons CO₂ equivalent"
+
 
   def filterCountriesMissingData = (countrySumPair: (String, Double)) => countrySumPair._2 != 0
 
 
-  def filterCountriesMissingPopulationIfApplicable(implicit weightByPopulation: Boolean, selectedYear: Int) =
+  def filterCountriesMissingPopulationIfApplicable(implicit weightedByPopulation: Boolean, selectedYear: Int) =
     (caitCountry: String) =>
-      !weightByPopulation || socioEconomic(selectedYear.toString)(caitCountry)(POPULATION)(POPULATION) > 0
+      !weightedByPopulation || socioEconomic(selectedYear.toString)(caitCountry)(POPULATION)(POPULATION) > 0
 
 
-  def initGeoMap(domSelector: String): Viz = d3plus.viz()
-    .`type`("geo_map")
-    .container(domSelector)
-    .resize(true)
-    .coords(
-      js.Dictionary(
-        MUTE -> "anata", // hides Antarctica
-        VALUE -> "/assets/js/vendor/countries.json"
+  def initGeoMap(domSelector: String)(implicit isWeightedByPopulation:()=>Boolean): Viz =
+    formattedViz(isWeightedByPopulation)
+      .`type`("geo_map")
+      .container(domSelector)
+      .resize(true)
+      .coords(
+        js.Dictionary(
+          MUTE -> "anata", // hides Antarctica
+          VALUE -> "/assets/js/vendor/countries.json"
+        )
       )
-    )
-    .id(ID)
-    .text(NAME)
-    .color(
-      js.Dictionary(
-        HEATMAP -> js.Array("#FFEE8D", "#B22200"),
-        VALUE -> VALUE
+      .id(ID)
+      .text(NAME)
+      .color(
+        js.Dictionary(
+          HEATMAP -> js.Array("#FFEE8D", "#B22200"),
+          VALUE -> VALUE
+        )
       )
-    )
-    .tooltip(VALUE)
 
 
   def countrySelectionChange(gasTreeMap:Viz, gasFilterLabel: Span, sourceTreeMap:Viz, sourcesFilterLabel: Span)
@@ -303,8 +336,10 @@ object MainScalaJS extends js.JSApp {
   def weightByPopulationIfApplicable(caitCountry: String, rawCountryTotal: Double)
                                     (implicit weightByPopulation: Boolean, selectedYear: Int): Double = {
 
-    if (weightByPopulation) // 1,000,000 is to convert metric tons to grams
-      1000000 * rawCountryTotal / socioEconomic(selectedYear.toString)(caitCountry)(POPULATION)(POPULATION)
+    // 1,000,000,000 is to convert 'million metric tons' to kilograms
+    // as per https://groups.google.com/forum/#!topic/climate-analysis-indicators-tool/yWVxUKYKqcE
+    if (weightByPopulation)
+      1000000000 * rawCountryTotal / socioEconomic(selectedYear.toString)(caitCountry)(POPULATION)(POPULATION)
     else
       rawCountryTotal
 

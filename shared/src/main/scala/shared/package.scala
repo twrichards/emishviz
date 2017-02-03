@@ -31,11 +31,15 @@ package object shared {
   val SCALE = "scale"
   val ID = "id"
   val COUNTRY_CODE = "country-code"
+  val TEXT = "text"
+  val NUMBER = "number"
+  val KEY = "key"
+  val SHARE = "share"
 
   val GASES = "gases"
-  val CO2 = "co2"
-  val CH4 = "ch4"
-  val N2O = "n2o"
+  val CO2 = "CO₂"
+  val CH4 = "CH₄"
+  val N2O = "N₂O"
 
   val SOURCE = "source"
   val ENERGY = "energy"

@@ -1,11 +1,10 @@
-Add note for MtCO₂e carbon dioxide equivalent & Including Land-Use Change and Forestry
 Add CAIT credit/reference (as per licence)
 Add reference for https://github.com/topojson/world-atlas
 add reference for D3 slider
 add reference for D3plus
 
 add line chart for overall emissions lined up with the slider
-improve tooltips (inc. 'grams per person' addition when weighted)
-selecting country filters treemaps
 
 refactor/breakdown MainScalaJS.scala to abstract the visualisations
+
+fix intermittent tooltips on gas tree map

@@ -42,7 +42,7 @@ body {
 }
 
 .max-height {
-	height: 100%
+    height: calc(100% - 45px);
 }
 
 .w-sixty-five{
@@ -64,6 +64,7 @@ body {
 .w-thirty-five div {
 	height: calc(100% - 25px);
 }
+
 
 .inner-pad {
     margin: 10px;
@@ -109,4 +110,13 @@ body {
 .filter-label {
     font-style: italic;
     background-color: #ffb7b7;
+}
+
+#mapLegendUnits {
+    display: block;
+    stroke: none;
+    font-weight: 200;
+    font-family: "Helvetica Neue";
+    fill: rgb(68, 68, 68);
+    text-align: center;
 }
