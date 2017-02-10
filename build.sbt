@@ -8,7 +8,8 @@ val clientDependencies = Def.setting(sharedDependencies.value ++ Seq(
   "org.singlespaced" %%% "scalajs-d3" % "0.3.2"
 ))
 val serverDependencies = Def.setting(sharedDependencies.value ++ Seq(
-  "com.vmunier" %% "scalajs-scripts" % "1.0.0"
+  "com.vmunier" %% "scalajs-scripts" % "1.0.0",
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test
 ))
 
 lazy val server = (project in file("server")).settings(

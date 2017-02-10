@@ -5,18 +5,20 @@ import javax.inject.Inject
 import play.Environment
 import shared._
 
+import AbstractCaitCsvRepresentation._
+
 class GhgEmissions @Inject()(env: Environment) extends AbstractCaitCsvRepresentation(env, PATH_EMISSIONS_CSV) {
 
   override def extractSpecifics(cells: Array[String]): CaitYearCountryDetail = {
 
     val energy =
       safeDouble(cells, 11) // energy total
-    -safeDouble(cells, 19) // transport raw
+    - safeDouble(cells, 19) // transport raw
 
 
     val transport =
       safeDouble(cells, 19) // transport raw
-    +safeDouble(cells, 16) // bunker fuels
+    + safeDouble(cells, 16) // bunker fuels
 
     Map(
       GASES -> Map(

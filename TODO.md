@@ -1,4 +1,4 @@
-1. Write some tests!!!
+1. Write lots more tests!!!
 
 2. Credits/References
   * CAIT data (as per licence)
