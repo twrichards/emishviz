@@ -1,24 +1,25 @@
 package models
 
+import java.io.InputStream
 import javax.inject.Inject
 
+import models.AbstractCaitCsvRepresentation._
 import play.Environment
 import shared._
 
-import AbstractCaitCsvRepresentation._
+class GhgEmissions (inputStream: InputStream) extends AbstractCaitCsvRepresentation(inputStream) {
 
-class GhgEmissions @Inject()(env: Environment) extends AbstractCaitCsvRepresentation(env, PATH_EMISSIONS_CSV) {
+  @Inject
+  def this(env: Environment) =
+    this(env.resourceAsStream("data/cait/csv/CAIT Country GHG Emissions.csv"))
 
   override def extractSpecifics(cells: Array[String]): CaitYearCountryDetail = {
 
-    val energy =
-      safeDouble(cells, 11) // energy total
-    - safeDouble(cells, 19) // transport raw
+    val energy = // energy total MINUS transport raw
+      safeDouble(cells, 11) - safeDouble(cells, 19)
 
-
-    val transport =
-      safeDouble(cells, 19) // transport raw
-    + safeDouble(cells, 16) // bunker fuels
+    val transport = // transport raw PLUS bunker fuels
+      safeDouble(cells, 19) + safeDouble(cells, 16)
 
     Map(
       GASES -> Map(

@@ -1,13 +1,17 @@
 package models
 
+import java.io.InputStream
 import javax.inject.Inject
 
+import models.AbstractCaitCsvRepresentation._
 import play.Environment
 import shared._
 
-import AbstractCaitCsvRepresentation._
+class SocioEconomic (inputStream: InputStream) extends AbstractCaitCsvRepresentation(inputStream) {
 
-class SocioEconomic @Inject()(env: Environment) extends AbstractCaitCsvRepresentation(env, PATH_SOCIO_CSV) {
+  @Inject
+  def this(env: Environment) =
+    this(env.resourceAsStream("data/cait/csv/CAIT Country Socio-Economic Data.csv"))
 
   override def extractSpecifics(cells: Array[String]): CaitYearCountryDetail = {
 

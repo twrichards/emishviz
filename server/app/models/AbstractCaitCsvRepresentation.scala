@@ -1,30 +1,30 @@
 package models
 
-import play.Environment
+import java.io.InputStream
+
+import models.AbstractCaitCsvRepresentation._
 import shared._
 
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
-import AbstractCaitCsvRepresentation._
+abstract class AbstractCaitCsvRepresentation(inputStream: InputStream) {
 
-abstract class AbstractCaitCsvRepresentation(env: Environment, csvPath: String) {
-
-  private val bufferedReader = Source.fromInputStream(env.resourceAsStream(csvPath), "windows-1252")
+  private val bufferedReader = Source.fromInputStream(inputStream, "windows-1252")
 
   private val caitMap =
     bufferedReader
       .getLines
       .toArray
       .map(_.trim)
+      .filterNot(_.startsWith("World"))
+      .filterNot(_.startsWith("European Union"))
       .drop(3) // skip headings
       .map(replaceQuotedCommas)
       .map(_.split(",").map(_.trim))
       .groupBy(groupByYear) //year
       .mapValues(
       _.groupBy(groupByCountryRestoringCommas) // country
-        .filterKeys(_ != "World")
-        .filterKeys(!_.startsWith("European Union"))
         .mapValues(_.map(extractSpecifics)) // extract detail
         .mapValues(_ (0)) // simple year arrays to first item
     )
