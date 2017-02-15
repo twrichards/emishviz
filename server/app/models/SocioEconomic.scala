@@ -13,6 +13,8 @@ class SocioEconomic (inputStream: InputStream) extends AbstractCaitCsvRepresenta
   def this(env: Environment) =
     this(env.resourceAsStream("data/cait/csv/CAIT Country Socio-Economic Data.csv"))
 
+  override protected[models] def howManyHeadingLines: Int = 2
+
   override def extractSpecifics(cells: Array[String]): CaitYearCountryDetail = {
 
     Map(

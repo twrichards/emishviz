@@ -17,9 +17,9 @@ abstract class AbstractCaitCsvRepresentation(inputStream: InputStream) {
       .getLines
       .toArray
       .map(_.trim)
+      .drop(howManyHeadingLines) // skip headings
       .filterNot(_.startsWith("World"))
       .filterNot(_.startsWith("European Union"))
-      .drop(3) // skip headings
       .map(replaceQuotedCommas)
       .map(_.split(",").map(_.trim))
       .groupBy(groupByYear) //year
@@ -34,6 +34,8 @@ abstract class AbstractCaitCsvRepresentation(inputStream: InputStream) {
   val json = stringifyCait(caitMap)
 
   protected[models] def extractSpecifics(cells: Array[String]): CaitYearCountryDetail
+
+  protected[models] def howManyHeadingLines: Int
 
 }
 
